@@ -1,35 +1,35 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/main/java/io/github/yuokada/quarkus/`: アプリ本体のJavaコード（RESTリソースなど）。
-- `src/main/resources/`: `application.properties` を含む設定ファイル。
-- `src/main/docker/`: JVM/ネイティブ向けのDockerfile群。
-- `src/test/java/io/github/yuokada/quarkus/`: テストコード（例: `GreetingResourceTest`）。
-- `spec/`: 仕様や設計メモ（例: `spec/v2.md`）。
+- `src/main/java/io/github/yuokada/quarkus/`: Application Java code (REST resources, etc.).
+- `src/main/resources/`: Configuration files including `application.properties`.
+- `src/main/docker/`: Dockerfiles for JVM/native builds.
+- `src/test/java/io/github/yuokada/quarkus/`: Test code (example: `GreetingResourceTest`).
+- `spec/`: Specifications and design notes (example: `spec/v2.md`).
 
 ## Build, Test, and Development Commands
-- `./mvnw quarkus:dev`: 開発モード起動（ホットリロード、Dev UIは `http://localhost:8080/q/dev/`）。
-- `./mvnw test`: ユニットテスト実行（`*Test`）。
-- `./mvnw verify`: 統合テスト含むビルド（`*IT`、必要に応じて `-DskipITs=false`）。
-- `./mvnw package`: JARを生成（`target/quarkus-app/`）。
-- `./mvnw package -Dnative`: ネイティブビルド（GraalVM必要）。
+- `./mvnw quarkus:dev`: Run in dev mode (hot reload, Dev UI at `http://localhost:8080/q/dev/`).
+- `./mvnw test`: Run unit tests (`*Test`).
+- `./mvnw verify`: Build with integration tests (`*IT`, set `-DskipITs=false` if needed).
+- `./mvnw package`: Build JARs (`target/quarkus-app/`).
+- `./mvnw package -Dnative`: Native build (requires GraalVM).
 
 ## Coding Style & Naming Conventions
-- Java 17前提。インデントはスペース4つ。
-- クラス名はPascalCase、メソッド/変数はcamelCase。
-- RESTリソースは `*Resource` 命名を維持。
-- 自動フォーマッタ/リンタは現時点で未設定のため、既存のスタイルに合わせる。
+- Java 17 is required. Use 4-space indentation.
+- Class names use PascalCase; methods/variables use camelCase.
+- Keep REST resources named `*Resource`.
+- No formatter/linter is configured; follow existing style.
 
 ## Testing Guidelines
-- テストはJUnit 5（`quarkus-junit5`）とRestAssuredを使用。
-- 命名: ユニットテストは `*Test`、統合テストは `*IT`。
-- 統合テストはデフォルトでスキップされるため、必要時は `-DskipITs=false`。
+- Tests use JUnit 5 (`quarkus-junit`) and RestAssured.
+- Naming: unit tests are `*Test`, integration tests are `*IT`.
+- Integration tests are skipped by default; use `-DskipITs=false` when needed.
 
 ## Commit & Pull Request Guidelines
-- Git履歴がまだないため、コミット規約は未確立。
-- 推奨: 1変更1コミット、明確な要約（例: `Add greeting endpoint`）。
-- PRには変更概要、動作確認手順、必要ならスクリーンショットや関連Issueを記載。
+- Commit conventions are not yet established.
+- Recommendation: one change per commit with a clear summary (example: `Add greeting endpoint`).
+- PRs should include a summary, verification steps, and screenshots/issues when relevant.
 
 ## Configuration Tips
-- 主要な設定は `src/main/resources/application.properties` に集約。
-- 環境依存設定はプロファイル分離（例: `application-dev.properties`）を検討。
+- Primary settings live in `src/main/resources/application.properties`.
+- Consider profile-specific settings (example: `application-dev.properties`).

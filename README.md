@@ -1,15 +1,15 @@
 # kagami
 
-Shadow Proxy (kagami) は既存 API (master) と開発中 API (shadow) のレスポンス差分を検出する開発者向けツールです。
+Shadow Proxy (kagami) is a developer tool that detects response differences between existing APIs (master) and in-development APIs (shadow).
 
-## 使い方
+## Usage
 
-- Proxy は master レスポンスをクライアントへ返し、差分は stdout/ログへ JSON Lines で出力します。
-- `X-Shadow` ヘッダーがあるリクエストは shadow 送信をスキップします。
+- The proxy returns the master response to clients and emits JSON Lines diff reports to stdout/logs.
+- Requests with the `X-Shadow` header skip the shadow upstream.
 
-## 主要設定
+## Key Configuration
 
-`src/main/resources/application.properties` に以下の設定があります。
+`src/main/resources/application.properties` includes the following settings.
 
 ```
 proxy.upstream.master=http://existing-api:8080
@@ -26,13 +26,13 @@ proxy.request-id.type=UUID
 proxy.reporter.mode=stdout
 ```
 
-設定のポイント:
+Notes:
 
-- `proxy.compare.ignore-paths` は JSONPath で動的フィールドを除外します。
-- `proxy.request-id.type` は `UUID` / `ULID` を選べます。
-- `proxy.reporter.mode` は `stdout` / `logger` を選べます。
+- `proxy.compare.ignore-paths` removes dynamic fields via JSONPath.
+- `proxy.request-id.type` supports `UUID` / `ULID`.
+- `proxy.reporter.mode` supports `stdout` / `logger`.
 
-## ローカル実行
+## Run Locally
 
 ## Running the application in dev mode
 
@@ -95,7 +95,7 @@ Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
 
-## テスト
+## Tests
 
 ```shell script
 ./mvnw test
