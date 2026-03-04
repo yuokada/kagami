@@ -1,8 +1,38 @@
 # kagami
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Shadow Proxy (kagami) は既存 API (master) と開発中 API (shadow) のレスポンス差分を検出する開発者向けツールです。
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## 使い方
+
+- Proxy は master レスポンスをクライアントへ返し、差分は stdout/ログへ JSON Lines で出力します。
+- `X-Shadow` ヘッダーがあるリクエストは shadow 送信をスキップします。
+
+## 主要設定
+
+`src/main/resources/application.properties` に以下の設定があります。
+
+```
+proxy.upstream.master=http://existing-api:8080
+proxy.upstream.shadow=http://dev-api:8080
+proxy.timeout.master=60s
+proxy.timeout.shadow=60s
+proxy.body.max-bytes=10485760
+proxy.compare.enabled=true
+proxy.compare.array-order-sensitive=true
+proxy.compare.null-vs-missing-equal=false
+proxy.compare.ignore-paths=$.timestamp,$.traceId
+proxy.request-id.header=X-Request-Id
+proxy.request-id.type=UUID
+proxy.reporter.mode=stdout
+```
+
+設定のポイント:
+
+- `proxy.compare.ignore-paths` は JSONPath で動的フィールドを除外します。
+- `proxy.request-id.type` は `UUID` / `ULID` を選べます。
+- `proxy.reporter.mode` は `stdout` / `logger` を選べます。
+
+## ローカル実行
 
 ## Running the application in dev mode
 
@@ -64,3 +94,9 @@ If you want to learn more about building native executables, please consult <htt
 Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+## テスト
+
+```shell script
+./mvnw test
+```
