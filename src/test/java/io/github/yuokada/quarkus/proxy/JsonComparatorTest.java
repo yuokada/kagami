@@ -82,6 +82,17 @@ class JsonComparatorTest {
         assertEquals("$.status", result.diffEntries().get(0).path());
     }
 
+    @Test
+    void compareSkipsWhenDisabled() {
+        ProxyConfig.Compare compareConfig = new TestCompareConfig(false, true, false, List.of());
+        ComparisonResult result = comparator.compare(
+                response("{\"value\":1}"),
+                response("{\"value\":2}"),
+                compareConfig);
+
+        assertEquals(ComparisonResult.Result.SAME, result.result());
+    }
+
     private UpstreamResponse response(String json) {
         return responseWithStatus(json, 200);
     }
