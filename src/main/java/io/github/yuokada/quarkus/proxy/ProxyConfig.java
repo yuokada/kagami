@@ -18,6 +18,8 @@ public interface ProxyConfig {
 
     RequestId requestId();
 
+    Reporter reporter();
+
     interface Upstream {
         String master();
 
@@ -52,5 +54,9 @@ public interface ProxyConfig {
         String header();
 
         String type();
+    }
+
+    interface Reporter {
+        String mode();
     }
 }

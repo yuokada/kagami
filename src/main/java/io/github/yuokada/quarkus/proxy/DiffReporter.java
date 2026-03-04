@@ -10,12 +10,18 @@ import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class DiffReporter {
 
+    private static final Logger LOGGER = Logger.getLogger(DiffReporter.class);
+
     @Inject
     ObjectMapper objectMapper;
+
+    @Inject
+    ProxyConfig proxyConfig;
 
     public void report(
             String requestId,
@@ -42,9 +48,23 @@ public class DiffReporter {
         }
 
         try {
-            System.out.println(objectMapper.writeValueAsString(payload));
+            String json = objectMapper.writeValueAsString(payload);
+            if (useLogger()) {
+                LOGGER.info(json);
+            } else {
+                System.out.println(json);
+            }
         } catch (JsonProcessingException exception) {
-            System.out.println("{\"result\":\"ERROR\",\"message\":\"failed to serialize report\"}");
+            if (useLogger()) {
+                LOGGER.error("{\"result\":\"ERROR\",\"message\":\"failed to serialize report\"}");
+            } else {
+                System.out.println("{\"result\":\"ERROR\",\"message\":\"failed to serialize report\"}");
+            }
         }
+    }
+
+    private boolean useLogger() {
+        String mode = proxyConfig.reporter().mode();
+        return mode != null && mode.equalsIgnoreCase("logger");
     }
 }

@@ -18,10 +18,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @ApplicationScoped
 @SuppressWarnings("deprecation")
 public class JsonComparator {
+
+    private final ConcurrentMap<String, JsonPath> compiledPaths = new ConcurrentHashMap<>();
 
     @Inject
     ObjectMapper objectMapper;
@@ -69,13 +73,17 @@ public class JsonComparator {
         Configuration configuration = Configuration.builder().options(Option.SUPPRESS_EXCEPTIONS).build();
         DocumentContext context = JsonPath.using(configuration).parse(document);
         for (String path : compareConfig.ignorePaths()) {
-            context.delete(path);
+            context.delete(compiledPath(path));
         }
         Object updated = context.json();
         if (updated == null) {
             return objectMapper.createObjectNode();
         }
         return objectMapper.valueToTree(updated);
+    }
+
+    private JsonPath compiledPath(String path) {
+        return compiledPaths.computeIfAbsent(path, JsonPath::compile);
     }
 
     private void compareNodes(
