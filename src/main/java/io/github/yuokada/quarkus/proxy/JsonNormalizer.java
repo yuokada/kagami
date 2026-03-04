@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import java.util.TreeMap;
 
 @ApplicationScoped
+@SuppressWarnings("deprecation")
 public class JsonNormalizer {
 
     @Inject

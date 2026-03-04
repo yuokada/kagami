@@ -113,6 +113,7 @@ public class ProxyResource {
         ComparisonResult comparison = compare(master, shadow);
         diffReporter.report(
                 context.requestId(),
+                context.clientRequestId(),
                 context.method(),
                 context.path(),
                 master,

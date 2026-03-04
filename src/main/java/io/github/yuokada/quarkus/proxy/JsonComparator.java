@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 @ApplicationScoped
+@SuppressWarnings("deprecation")
 public class JsonComparator {
 
     @Inject
@@ -70,7 +71,11 @@ public class JsonComparator {
         for (String path : compareConfig.ignorePaths()) {
             context.delete(path);
         }
-        return objectMapper.valueToTree(context.json());
+        Object updated = context.json();
+        if (updated == null) {
+            return objectMapper.createObjectNode();
+        }
+        return objectMapper.valueToTree(updated);
     }
 
     private void compareNodes(

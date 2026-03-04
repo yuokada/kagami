@@ -49,10 +49,10 @@ public class ProxyUpstreamTestResource implements QuarkusTestResourceLifecycleMa
             shadowServer.stop(0);
         }
         if (masterExecutor != null) {
-            masterExecutor.shutdownNow();
+            shutdownExecutor(masterExecutor);
         }
         if (shadowExecutor != null) {
-            shadowExecutor.shutdownNow();
+            shutdownExecutor(shadowExecutor);
         }
     }
 
@@ -81,6 +81,18 @@ public class ProxyUpstreamTestResource implements QuarkusTestResourceLifecycleMa
         }
         server.start();
         return server;
+    }
+
+    private void shutdownExecutor(ExecutorService executor) {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(1, java.util.concurrent.TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException exception) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     private String urlFor(HttpServer server) {
@@ -121,7 +133,7 @@ public class ProxyUpstreamTestResource implements QuarkusTestResourceLifecycleMa
                 return;
             }
             if (path.contains("/slow")) {
-                sleep(200);
+                sleep(1500);
             }
             exchange.getResponseHeaders().add("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, responseBody.length);

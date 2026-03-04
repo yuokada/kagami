@@ -7,7 +7,7 @@ public class TimeoutTestProfile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
-                "proxy.timeout.master", "100ms",
-                "proxy.timeout.shadow", "100ms");
+                "proxy.timeout.master", "1s",
+                "proxy.timeout.shadow", "1s");
     }
 }

@@ -50,5 +50,7 @@ public interface ProxyConfig {
 
     interface RequestId {
         String header();
+
+        String type();
     }
 }

@@ -2,6 +2,7 @@ package io.github.yuokada.quarkus.proxy;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -13,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
+@TestProfile(TimeoutTestProfile.class)
 @QuarkusTestResource(ProxyUpstreamTestResource.class)
 class ProxyResourceTest {
 
@@ -75,6 +77,21 @@ class ProxyResourceTest {
         assertEquals(1, ProxyUpstreamTestResource.shadowCount());
         assertTrue(output.contains("\"path\":\"/large\""));
         assertTrue(output.contains("\"result\":\"TOO_LARGE\""));
+    }
+
+    @Test
+    void timeoutsAreReported() {
+        String output = captureStdout(() ->
+                RestAssured.given()
+                        .when()
+                        .get("/slow")
+                        .then()
+                        .statusCode(504));
+
+        assertEquals(1, ProxyUpstreamTestResource.masterCount());
+        assertEquals(1, ProxyUpstreamTestResource.shadowCount());
+        assertTrue(output.contains("\"path\":\"/slow\""));
+        assertTrue(output.contains("\"result\":\"TIMEOUT\""));
     }
 
 

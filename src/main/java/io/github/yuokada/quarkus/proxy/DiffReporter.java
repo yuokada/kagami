@@ -19,6 +19,7 @@ public class DiffReporter {
 
     public void report(
             String requestId,
+            String clientRequestId,
             String method,
             String path,
             UpstreamResponse master,
@@ -27,6 +28,7 @@ public class DiffReporter {
             List<DiffEntry> diffs) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("requestId", requestId);
+        payload.put("clientRequestId", clientRequestId);
         payload.put("method", method);
         payload.put("path", path);
         payload.put("statusMaster", master.status());
