@@ -1,5 +1,7 @@
 package io.github.yuokada.quarkus.proxy;
 
+import io.github.yuokada.quarkus.proxy.logging.LoggingContext;
+import io.github.yuokada.quarkus.proxy.logging.LoggingKeys;
 import io.github.yuokada.quarkus.proxy.model.ComparisonResult;
 import io.github.yuokada.quarkus.proxy.model.DiffEntry;
 import io.github.yuokada.quarkus.proxy.model.UpstreamPair;
@@ -26,12 +28,15 @@ import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import org.jboss.logging.Logger;
+import org.jboss.logging.MDC;
 
 @ApplicationScoped
 @Path("/{path:.*}")
 @Consumes("*/*")
 @Produces("*/*")
 public class ProxyResource {
+    private static final Logger LOGGER = Logger.getLogger(ProxyResource.class);
     private static final String SHADOW_HEADER = "X-Shadow";
 
     @Inject
@@ -93,20 +98,42 @@ public class ProxyResource {
 
     private Response handle(String method, String path, UriInfo uriInfo, HttpHeaders headers, byte[] body) {
         RequestContext context = requestReceiver.receive(method, uriInfo, headers);
-        boolean sendShadow = headers.getHeaderString(SHADOW_HEADER) == null;
-        ParallelDispatcher.UriTargets targets = new ParallelDispatcher.UriTargets(
-                buildUpstreamUri(proxyConfig.upstream().master(), uriInfo),
-                buildUpstreamUri(proxyConfig.upstream().shadow(), uriInfo));
+        LoggingContext.startRequest(context.requestId(), context.method(), context.path());
+        try {
+            MDC.put(LoggingKeys.EVENT_TYPE, "request.started");
+            LOGGER.info("request started");
 
-        UpstreamPair responses = parallelDispatcher.dispatch(context, targets, body, sendShadow);
-        UpstreamResponse masterResponse = responses.master();
-        UpstreamResponse shadowResponse = responses.shadow();
+            boolean sendShadow = headers.getHeaderString(SHADOW_HEADER) == null;
+            ParallelDispatcher.UriTargets targets = new ParallelDispatcher.UriTargets(
+                    buildUpstreamUri(proxyConfig.upstream().master(), uriInfo),
+                    buildUpstreamUri(proxyConfig.upstream().shadow(), uriInfo));
 
-        if (shadowResponse != null) {
-            emitReport(context, masterResponse, shadowResponse);
+            UpstreamPair responses = parallelDispatcher.dispatch(context, targets, body, sendShadow);
+            UpstreamResponse masterResponse = responses.master();
+            UpstreamResponse shadowResponse = responses.shadow();
+
+            if (shadowResponse != null) {
+                emitReport(context, masterResponse, shadowResponse);
+            }
+
+            long durationMs = (System.nanoTime() - context.startTimeNanos()) / 1_000_000;
+            MDC.put(LoggingKeys.DURATION_MS, String.valueOf(durationMs));
+            MDC.put(LoggingKeys.HTTP_STATUS, String.valueOf(masterResponse.status()));
+
+            if (masterResponse.timedOut() || masterResponse.error()) {
+                MDC.put(LoggingKeys.EVENT_TYPE, "request.failed");
+                MDC.put(LoggingKeys.STATUS, "failed");
+                LOGGER.warn("request failed");
+            } else {
+                MDC.put(LoggingKeys.EVENT_TYPE, "request.succeeded");
+                MDC.put(LoggingKeys.STATUS, "success");
+                LOGGER.info("request succeeded");
+            }
+
+            return buildClientResponse(masterResponse);
+        } finally {
+            LoggingContext.clear();
         }
-
-        return buildClientResponse(masterResponse);
     }
 
     private void emitReport(RequestContext context, UpstreamResponse master, UpstreamResponse shadow) {
