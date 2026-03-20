@@ -1,5 +1,5 @@
 ---
-applyTo: "src/main/java/**/*.java,src/test/java/**/*.java,src/main/resources/application.properties,pom.xml"
+applyTo: "src/main/java/**/*.java,src/test/java/**/*.java,src/main/resources/application.properties"
 ---
 
 When editing backend files in this repository:

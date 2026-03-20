@@ -15,7 +15,7 @@ Follow these repository instructions when working in this project.
 - Main application code lives under `src/main/java/io/github/yuokada/quarkus/proxy/`.
 - Configuration is primarily managed in `src/main/resources/application.properties`.
 - Tests live under `src/test/java/io/github/yuokada/quarkus/proxy/`.
-- Additional design notes live under `spec/`.
+- Additional design notes live under `spec/`. (Note: some existing documents are in Japanese)
 
 ## Validation
 
