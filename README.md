@@ -83,6 +83,16 @@ You can then execute your native executable with: `./target/kagami-1.0.0-SNAPSHO
 
 If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
 
+## Known Limitations
+
+### HTTP/2 upstream support
+
+When the upstream server communicates over HTTP/2, the Java `HttpClient` includes HTTP/2 pseudo-headers (`:status`, `:path`, etc.) in the response header map.
+kagami strips these pseudo-headers (any header name starting with `:`) before forwarding the master response to the client.
+Without this, Vert.x rejects them with `IllegalArgumentException: a header name cannot contain some prohibited characters, such as : :status` when building the HTTP/1.1 response.
+
+In addition, `transfer-encoding` and `content-length` hop-by-hop headers are also removed on forwarding.
+
 ## Related Guides
 
 - REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.

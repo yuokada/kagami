@@ -177,7 +177,7 @@ public class ProxyResource {
             builder.entity(masterResponse.rawBody());
         }
         masterResponse.headers().forEach((key, values) -> {
-            if (!"transfer-encoding".equalsIgnoreCase(key) && !"content-length".equalsIgnoreCase(key)) {
+            if (!key.startsWith(":") && !"transfer-encoding".equalsIgnoreCase(key) && !"content-length".equalsIgnoreCase(key)) {
                 values.forEach(value -> builder.header(key, value));
             }
         });
