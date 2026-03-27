@@ -173,11 +173,15 @@ public class ProxyResource {
     private Response buildClientResponse(UpstreamResponse masterResponse) {
         int status = masterResponse.status() == 0 ? Response.Status.GATEWAY_TIMEOUT.getStatusCode() : masterResponse.status();
         Response.ResponseBuilder builder = Response.status(status);
-        if (masterResponse.rawBody() != null) {
+        boolean hasBody = masterResponse.rawBody() != null && masterResponse.rawBody().length > 0;
+        if (hasBody) {
             builder.entity(masterResponse.rawBody());
         }
         masterResponse.headers().forEach((key, values) -> {
             if (!key.startsWith(":") && !"transfer-encoding".equalsIgnoreCase(key) && !"content-length".equalsIgnoreCase(key)) {
+                if (!hasBody && "content-type".equalsIgnoreCase(key)) {
+                    return;
+                }
                 values.forEach(value -> builder.header(key, value));
             }
         });

@@ -93,6 +93,14 @@ Without this, Vert.x rejects them with `IllegalArgumentException: a header name 
 
 In addition, `transfer-encoding` and `content-length` hop-by-hop headers are also removed on forwarding.
 
+### Empty / no-body responses
+
+Upstreams that return no body (e.g. `204 No Content`, `304 Not Modified`, connection errors) produce an empty `rawBody`.
+kagami skips setting a JAX-RS entity in that case to avoid a `500` error from the Vert.x/RESTEasy serializer attempting to write an empty `byte[]`.
+The `Content-Type` header is also suppressed when there is no body, for the same reason.
+
+When the shadow upstream also returns an empty body, the comparator short-circuits and reports `SAME` rather than attempting JSON parsing — which would produce a `NullPointerException` (Jackson's `readTree("")` returns `null`) and cause a `500` response.
+
 ## Related Guides
 
 - REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.

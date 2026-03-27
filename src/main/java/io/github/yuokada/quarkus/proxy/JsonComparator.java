@@ -42,6 +42,16 @@ public class JsonComparator {
             return new ComparisonResult(ComparisonResult.Result.DIFF, diffStatus(master, shadow), null);
         }
 
+        boolean masterEmpty = master.decodedBody() == null || master.decodedBody().length == 0;
+        boolean shadowEmpty = shadow.decodedBody() == null || shadow.decodedBody().length == 0;
+        if (masterEmpty && shadowEmpty) {
+            return new ComparisonResult(ComparisonResult.Result.SAME, List.of(), null);
+        }
+        if (masterEmpty || shadowEmpty) {
+            return new ComparisonResult(ComparisonResult.Result.DIFF,
+                    List.of(new DiffEntry("$", masterEmpty ? null : "(body)", shadowEmpty ? null : "(body)")), null);
+        }
+
         try {
             JsonNode masterNode = applyIgnorePaths(parseJson(master.decodedBody()), compareConfig);
             JsonNode shadowNode = applyIgnorePaths(parseJson(shadow.decodedBody()), compareConfig);

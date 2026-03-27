@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -77,6 +78,20 @@ class ProxyResourceTest {
         assertEquals(1, ProxyUpstreamTestResource.shadowCount());
         assertTrue(output.contains("\"path\":\"/large\""));
         assertTrue(output.contains("\"result\":\"TOO_LARGE\""));
+    }
+
+    @Test
+    void emptyBodyRedirectIsForwarded() {
+        RestAssured.given()
+                .redirects().follow(false)
+                .when()
+                .get("/redirect")
+                .then()
+                .statusCode(303)
+                .header("Location", notNullValue());
+
+        assertEquals(1, ProxyUpstreamTestResource.masterCount());
+        assertEquals(1, ProxyUpstreamTestResource.shadowCount());
     }
 
     @Test

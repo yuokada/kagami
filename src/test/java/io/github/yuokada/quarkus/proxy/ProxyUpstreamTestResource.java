@@ -112,6 +112,12 @@ public class ProxyUpstreamTestResource implements QuarkusTestResourceLifecycleMa
         public void handle(HttpExchange exchange) throws IOException {
             counter.incrementAndGet();
             String path = exchange.getRequestURI().getPath();
+            if (path.contains("/redirect")) {
+                exchange.getResponseHeaders().add("Location", "https://example.com/api/v1/status");
+                exchange.sendResponseHeaders(303, -1);
+                exchange.getResponseBody().close();
+                return;
+            }
             if (path.contains("/gzip")) {
                 byte[] gzipped = gzip(responseBody);
                 exchange.getResponseHeaders().add("Content-Type", "application/json");
