@@ -1,0 +1,22 @@
+proxy.upstream.master=https://existing-api.example.com:443
+proxy.upstream.shadow=http://localhost:8080
+proxy.timeout.master=60s
+proxy.timeout.shadow=60s
+proxy.body.max-bytes=10485760
+proxy.compare.enabled=true
+proxy.compare.array-order-sensitive=true
+proxy.compare.null-vs-missing-equal=false
+# Example: ignore dynamic fields
+# proxy.compare.ignore-paths=$.timestamp,$.traceId,$.requestId
+proxy.compare.ignore-paths=$.timestamp,$.traceId
+proxy.concurrency.max-comparisons=50
+proxy.request-id.header=X-Request-Id
+proxy.request-id.type=UUID
+proxy.reporter.mode=stdout
+quarkus.package.jar.type=uber-jar
+
+quarkus.http.port=8888
+
+quarkus.log.console.json=false
+quarkus.log.console.json.pretty-print=false
+%dev.quarkus.log.console.json.pretty-print=true

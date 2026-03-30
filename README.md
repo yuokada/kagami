@@ -9,7 +9,8 @@ Shadow Proxy (kagami) is a developer tool that detects response differences betw
 
 ## Key Configuration
 
-`src/main/resources/application.properties` includes the following settings.
+Place your settings in an external file (e.g. `config/application.properties`) and pass it at startup — see [Run Locally](#run-locally) below.
+The default bundled config is at `src/main/resources/application.properties`.
 
 ```
 proxy.upstream.master=http://existing-api:8080
@@ -34,12 +35,17 @@ Notes:
 
 ## Run Locally
 
-## Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
+Pass an external config file via `-Dquarkus.config.locations` to keep your settings outside the packaged artifact:
 
 ```shell script
-./mvnw quarkus:dev
+# copy and edit the template
+cp src/main/resources/application.properties config/application.properties
+```
+
+## Running the application in dev mode
+
+```shell script
+./mvnw -Dquarkus.config.locations=config/application.properties quarkus:dev
 ```
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
@@ -55,7 +61,11 @@ The application can be packaged using:
 It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
 Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+The application is now runnable using:
+
+```shell script
+java -jar -Dquarkus.config.locations=config/application.properties target/quarkus-app/quarkus-run.jar
+```
 
 If you want to build an _über-jar_, execute the following command:
 
@@ -63,7 +73,11 @@ If you want to build an _über-jar_, execute the following command:
 ./mvnw package -Dquarkus.package.jar.type=uber-jar
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+The application, packaged as an _über-jar_, is now runnable using:
+
+```shell script
+java -jar -Dquarkus.config.locations=config/application.properties target/*-runner.jar
+```
 
 ## Creating a native executable
 
