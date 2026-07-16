@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
@@ -14,6 +15,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
@@ -48,7 +51,7 @@ public class UpstreamClient {
                 .handle((response, throwable) -> {
                     long latencyMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
                     if (throwable != null) {
-                        return new UpstreamResponse(0, Map.of(), new byte[0], new byte[0], latencyMs, true, false, true, throwable.getMessage());
+                        return failureResponse(throwable, latencyMs);
                     }
                     byte[] rawBody = response.body();
                     byte[] decodedBody = decodeBody(response.headers().map(), rawBody);
@@ -64,6 +67,30 @@ public class UpstreamClient {
                             false,
                             null);
                 });
+    }
+
+    static UpstreamResponse failureResponse(Throwable throwable, long latencyMs) {
+        Throwable cause = unwrap(throwable);
+        boolean timedOut = cause instanceof HttpTimeoutException || cause instanceof TimeoutException;
+        String message = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+        return new UpstreamResponse(
+                0,
+                Map.of(),
+                new byte[0],
+                new byte[0],
+                latencyMs,
+                timedOut,
+                false,
+                !timedOut,
+                message);
+    }
+
+    private static Throwable unwrap(Throwable throwable) {
+        Throwable current = throwable;
+        while (current instanceof CompletionException && current.getCause() != null) {
+            current = current.getCause();
+        }
+        return current;
     }
 
     private byte[] decodeBody(Map<String, List<String>> headers, byte[] body) {

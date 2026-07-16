@@ -6,7 +6,6 @@ import io.github.yuokada.quarkus.proxy.model.ComparisonResult;
 import io.github.yuokada.quarkus.proxy.model.DiffEntry;
 import io.github.yuokada.quarkus.proxy.model.UpstreamPair;
 import io.github.yuokada.quarkus.proxy.model.UpstreamResponse;
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -26,7 +25,6 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import org.jboss.logging.Logger;
 import org.jboss.logging.MDC;
@@ -56,10 +54,6 @@ public class ProxyResource {
 
     @Inject
     DiffReporter diffReporter;
-
-    @PostConstruct
-    void init() {
-    }
 
     @GET
     public Response get(@PathParam("path") String path, @Context UriInfo uriInfo, @Context HttpHeaders headers) {
@@ -118,7 +112,7 @@ public class ProxyResource {
 
             long durationMs = (System.nanoTime() - context.startTimeNanos()) / 1_000_000;
             MDC.put(LoggingKeys.DURATION_MS, String.valueOf(durationMs));
-            MDC.put(LoggingKeys.HTTP_STATUS, String.valueOf(masterResponse.status()));
+            MDC.put(LoggingKeys.HTTP_STATUS, String.valueOf(clientStatus(masterResponse)));
 
             if (masterResponse.timedOut() || masterResponse.error()) {
                 MDC.put(LoggingKeys.EVENT_TYPE, "request.failed");
@@ -130,7 +124,7 @@ public class ProxyResource {
                 LOGGER.info("request succeeded");
             }
 
-            return buildClientResponse(masterResponse);
+            return buildClientResponse(masterResponse, method);
         } finally {
             LoggingContext.clear();
         }
@@ -170,22 +164,33 @@ public class ProxyResource {
         }
     }
 
-    private Response buildClientResponse(UpstreamResponse masterResponse) {
-        int status = masterResponse.status() == 0 ? Response.Status.GATEWAY_TIMEOUT.getStatusCode() : masterResponse.status();
+    private Response buildClientResponse(UpstreamResponse masterResponse, String method) {
+        int status = clientStatus(masterResponse);
         Response.ResponseBuilder builder = Response.status(status);
-        boolean hasBody = masterResponse.rawBody() != null && masterResponse.rawBody().length > 0;
+        boolean headRequest = "HEAD".equalsIgnoreCase(method);
+        boolean hasBody = !headRequest && masterResponse.rawBody() != null && masterResponse.rawBody().length > 0;
         if (hasBody) {
             builder.entity(masterResponse.rawBody());
         }
-        masterResponse.headers().forEach((key, values) -> {
-            if (!key.startsWith(":") && !"transfer-encoding".equalsIgnoreCase(key) && !"content-length".equalsIgnoreCase(key)) {
-                if (!hasBody && "content-type".equalsIgnoreCase(key)) {
-                    return;
-                }
-                values.forEach(value -> builder.header(key, value));
+        HttpHeaderSanitizer.sanitizeResponse(masterResponse.headers()).forEach((key, values) -> {
+            if (!headRequest && "content-length".equalsIgnoreCase(key)) {
+                return;
             }
+            if (!hasBody && !headRequest && "content-type".equalsIgnoreCase(key)) {
+                return;
+            }
+            values.forEach(value -> builder.header(key, value));
         });
         return builder.build();
+    }
+
+    int clientStatus(UpstreamResponse masterResponse) {
+        if (masterResponse.status() != 0) {
+            return masterResponse.status();
+        }
+        return masterResponse.timedOut()
+                ? Response.Status.GATEWAY_TIMEOUT.getStatusCode()
+                : Response.Status.BAD_GATEWAY.getStatusCode();
     }
 
     private URI buildUpstreamUri(String upstreamBase, UriInfo uriInfo) {

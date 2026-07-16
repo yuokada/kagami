@@ -25,7 +25,7 @@ public class RequestIdGenerator {
         return UUID.randomUUID().toString();
     }
 
-    private String generateUlid() {
+    String generateUlid() {
         byte[] data = new byte[16];
         long time = Instant.now().toEpochMilli();
         for (int i = TIME_BYTES - 1; i >= 0; i--) {
@@ -42,7 +42,7 @@ public class RequestIdGenerator {
         char[] chars = new char[26];
         int index = 0;
         int buffer = 0;
-        int bitsLeft = 0;
+        int bitsLeft = 2;
         for (byte value : data) {
             buffer = (buffer << 8) | (value & 0xFF);
             bitsLeft += 8;

@@ -39,7 +39,7 @@ Pass an external config file via `-Dquarkus.config.locations` to keep your setti
 
 ```shell script
 # copy and edit the template
-cp src/main/resources/application.properties config/application.properties
+cp config/kagami.properties.example config/application.properties
 ```
 
 ## Running the application in dev mode
@@ -58,25 +58,13 @@ The application can be packaged using:
 ./mvnw package
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+The project is configured with `quarkus.package.jar.type=uber-jar`, so this produces
+a self-contained `target/kagami-1.0.0-SNAPSHOT-runner.jar`.
 
 The application is now runnable using:
 
 ```shell script
-java -jar -Dquarkus.config.locations=config/application.properties target/quarkus-app/quarkus-run.jar
-```
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using:
-
-```shell script
-java -jar -Dquarkus.config.locations=config/application.properties target/*-runner.jar
+java -Dquarkus.config.locations=config/application.properties -jar target/*-runner.jar
 ```
 
 ## Creating a native executable
@@ -105,7 +93,8 @@ When the upstream server communicates over HTTP/2, the Java `HttpClient` include
 kagami strips these pseudo-headers (any header name starting with `:`) before forwarding the master response to the client.
 Without this, Vert.x rejects them with `IllegalArgumentException: a header name cannot contain some prohibited characters, such as : :status` when building the HTTP/1.1 response.
 
-In addition, `transfer-encoding` and `content-length` hop-by-hop headers are also removed on forwarding.
+In addition, hop-by-hop headers and headers named by `Connection` are removed on forwarding.
+`content-length` is regenerated for regular responses and preserved for `HEAD` responses.
 
 ### Empty / no-body responses
 

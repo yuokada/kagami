@@ -6,20 +6,11 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 @ApplicationScoped
 public class RequestReceiver {
     private static final String CLIENT_REQUEST_HEADER = "X-Client-Request-Id";
-    private static final Set<String> HOP_BY_HOP_HEADERS = Set.of(
-            "connection",
-            "host",
-            "content-length",
-            "transfer-encoding",
-            "upgrade");
-
     @Inject
     ProxyConfig proxyConfig;
 
@@ -31,13 +22,8 @@ public class RequestReceiver {
         String requestIdHeader = proxyConfig.requestId().header();
         String clientRequestId = headers.getHeaderString(requestIdHeader);
 
-        Map<String, List<String>> outgoingHeaders = new HashMap<>();
-        headers.getRequestHeaders().forEach((key, values) -> {
-            String normalized = key.toLowerCase(Locale.ROOT);
-            if (!key.equalsIgnoreCase(requestIdHeader) && !HOP_BY_HOP_HEADERS.contains(normalized)) {
-                outgoingHeaders.put(key, values);
-            }
-        });
+        Map<String, List<String>> outgoingHeaders = new HashMap<>(
+                HttpHeaderSanitizer.sanitizeRequest(headers.getRequestHeaders(), requestIdHeader));
         outgoingHeaders.put(requestIdHeader, List.of(requestId));
         if (clientRequestId != null && !clientRequestId.isBlank()) {
             outgoingHeaders.put(CLIENT_REQUEST_HEADER, List.of(clientRequestId));

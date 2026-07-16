@@ -95,6 +95,18 @@ class ProxyResourceTest {
     }
 
     @Test
+    void headPreservesRepresentationHeadersWithoutReturningABody() {
+        RestAssured.given()
+                .when()
+                .head("/head")
+                .then()
+                .statusCode(200)
+                .header("Content-Type", "application/json")
+                .header("Content-Length", "20")
+                .header("X-Representation-Length", notNullValue());
+    }
+
+    @Test
     void timeoutsAreReported() {
         String output = captureStdout(() ->
                 RestAssured.given()

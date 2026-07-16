@@ -91,7 +91,7 @@ JSON logging is provided by the **`quarkus-logging-json`** extension.
 `application.properties`:
 
 ```properties
-quarkus.log.console.json=true
+quarkus.log.console.json.enabled=true
 quarkus.log.console.json.pretty-print=false
 
 # Human-readable output in dev mode
