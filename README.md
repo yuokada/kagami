@@ -58,22 +58,10 @@ The application can be packaged using:
 ./mvnw package
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+The project is configured with `quarkus.package.jar.type=uber-jar`, so this produces
+a self-contained `target/kagami-1.0.0-SNAPSHOT-runner.jar`.
 
 The application is now runnable using:
-
-```shell script
-java -Dquarkus.config.locations=config/application.properties -jar target/quarkus-app/quarkus-run.jar
-```
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using:
 
 ```shell script
 java -Dquarkus.config.locations=config/application.properties -jar target/*-runner.jar

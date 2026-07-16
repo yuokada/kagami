@@ -13,6 +13,7 @@ proxy.concurrency.max-comparisons=50
 proxy.request-id.header=X-Request-Id
 proxy.request-id.type=UUID
 proxy.reporter.mode=stdout
+quarkus.package.jar.type=uber-jar
 
 quarkus.http.port=8888
 
